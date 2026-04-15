@@ -34,8 +34,38 @@ require_once __DIR__ . '/../../new/layout/html_top.php';
     </div>
 </div>
 
+<script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const success = urlParams.get('success');
+    if (success) {
+        let message = '';
+        if (success === '1') message = 'Schüler angelegt';
+        else if (success === '2') message = 'Klasse angelegt';
+        else if (success === '3') message = 'Klassenarbeit angelegt';
+        if (message) {
+            showToast(message);
+            // Remove the success parameter from URL to prevent re-showing on refresh
+            window.history.replaceState(null, null, window.location.pathname);
+        }
+    }
 
-
+    function showToast(message) {
+        const toast = document.createElement('div');
+        toast.textContent = message;
+        toast.style.position = 'fixed';
+        toast.style.bottom = '20px';
+        toast.style.right = '20px';
+        toast.style.backgroundColor = '#4CAF50';
+        toast.style.color = 'white';
+        toast.style.padding = '10px 20px';
+        toast.style.borderRadius = '5px';
+        toast.style.zIndex = '1000';
+        document.body.appendChild(toast);
+        setTimeout(() => {
+            document.body.removeChild(toast);
+        }, 3000);
+    }
+</script>
 
 <?php
 require_once __DIR__ . '/../../new/layout/html_bottom.php';

@@ -25,6 +25,15 @@
         echo json_encode($classes);
         exit;
       }
+      case 'getSubjects': {
+        // Retrieve all subjects and return as JSON
+        $stmt = $pdo->prepare("SELECT fach_id, name FROM fach ORDER BY name");
+        $stmt->execute();
+        $subjects = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        header('Content-Type: application/json');
+        echo json_encode($subjects);
+        exit;
+      }
       case 'gradesPerStudent': {
   
         echo "<p>$vorname $nachname</p>"; 

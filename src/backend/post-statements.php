@@ -10,6 +10,10 @@ function postStatements() {
   $name = isset($_POST['vorname']) ? htmlspecialchars($_POST['vorname']) : null;
   $lastname = isset($_POST['nachname']) ? htmlspecialchars($_POST['nachname']) : null;
   $bday = isset($_POST['geb']) ? htmlspecialchars($_POST['geb']) : null;
+  $titel = isset($_POST['titel']) ? htmlspecialchars($_POST['titel']) : null;
+  $datum = isset($_POST['datum']) ? htmlspecialchars($_POST['datum']) : null;
+  $gewichtung = isset($_POST['gewichtung']) ? htmlspecialchars($_POST['gewichtung']) : null;
+  $fach_id = isset($_POST['fach_id']) ? htmlspecialchars($_POST['fach_id']) : null;
 
   switch ($type) {
     case 'addStudent': {
@@ -26,6 +30,8 @@ function postStatements() {
           "INSERT INTO schueler (vorname, nachname, geburtsdatum, klasse_id) VALUES (?, ?, ?, ?)"
         );
         $stmt->execute($fields);
+        header('Location: ../frontend/Startseite.php?success=1');
+        exit();
       }
       break;
     }
@@ -48,6 +54,8 @@ function postStatements() {
             "INSERT INTO klasse (bezeichnung, schuljahr) VALUES (?, ?)"
           );
           $stmt->execute([$bezeichnung, $schuljahr]);
+          header('Location: ../frontend/Startseite.php?success=2');
+          exit();
         }
       }
       break;
@@ -94,6 +102,19 @@ function postStatements() {
           "INSERT INTO note (schueler_id, klassenarbeit_id, note) VALUES (?, ?, ?)"
         );
         $stmt->execute([$sid, $arbeit, $note]);
+      }
+      break;
+    }
+
+    case 'addKlassenarbeit': {
+      // insert a new klassenarbeit record
+      if ($titel && $datum && $gewichtung && $fach_id && $class_id) {
+        $stmt = $pdo->prepare(
+          "INSERT INTO klassenarbeit (titel, datum, gewichtung, fach_id, klasse_id) VALUES (?, ?, ?, ?, ?)"
+        );
+        $stmt->execute([$titel, $datum, $gewichtung, $fach_id, $class_id]);
+        header('Location: ../frontend/Startseite.php?success=3');
+        exit();
       }
       break;
     }
