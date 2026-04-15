@@ -41,10 +41,35 @@ try {
 <div class="container">
     <h1>Datenbank-Übersicht</h1>
 
-    <!-- Filter-Formular (Placeholder for future filtering) -->
+    <!-- Filter-Formular -->
     <div style="background-color: #f0f0f0; padding: 15px; margin-bottom: 20px; border-radius: 5px;">
-        <p><strong>Filter (coming soon):</strong> Hier werden später Filter implementiert</p>
+        <h3>Noten nach Schüler</h3>
+        <label for="studentSelect">Schüler wählen:</label>
+        <select id="studentSelect" onchange="getGradesPerStudent()">
+            <option value="">-- Schüler auswählen --</option>
+            <?php
+            // Get unique students
+            $studentQuery = "SELECT DISTINCT s.vorname, s.nachname 
+                           FROM schueler s 
+                           ORDER BY s.nachname, s.vorname";
+            try {
+                $stmt = $pdo->prepare($studentQuery);
+                $stmt->execute();
+                $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                foreach ($students as $student) {
+                    echo '<option value="' . htmlspecialchars($student['vorname']) . '|' . htmlspecialchars($student['nachname']) . '">';
+                    echo htmlspecialchars($student['vorname'] . ' ' . $student['nachname']);
+                    echo '</option>';
+                }
+            } catch (PDOException $e) {
+                echo '<option>Fehler beim Laden der Schüler</option>';
+            }
+            ?>
+        </select>
     </div>
+
+    <!-- Results Container -->
+    <div id="gradesResult" style="display:none; margin-bottom: 20px;"></div>
 
     <!-- Main Data Table -->
     <?php
@@ -87,6 +112,33 @@ try {
     <br>
     <button type="button" onclick="window.location.href='./Startseite.php'">Zurück</button>
 </div>
+
+<script>
+function getGradesPerStudent() {
+    const select = document.getElementById('studentSelect');
+    const resultDiv = document.getElementById('gradesResult');
+    
+    if (select.value === '') {
+        resultDiv.style.display = 'none';
+        return;
+    }
+    
+    const [vorname, nachname] = select.value.split('|');
+    
+    // Call the backend API using existing gradesPerStudent case
+    fetch(`../backend/main.php?type=gradesPerStudent&vorname=${encodeURIComponent(vorname)}&nachname=${encodeURIComponent(nachname)}`)
+        .then(response => response.text())
+        .then(html => {
+            resultDiv.innerHTML = html;
+            resultDiv.style.display = 'block';
+        })
+        .catch(error => {
+            console.error('Fehler:', error);
+            resultDiv.innerHTML = '<p style="color: red;">Fehler beim Abrufen der Noten.</p>';
+            resultDiv.style.display = 'block';
+        });
+}
+</script>
 
 <?php
 require_once __DIR__ . '/../../new/layout/html_bottom.php';
