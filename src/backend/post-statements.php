@@ -102,6 +102,8 @@ function postStatements() {
           "INSERT INTO note (schueler_id, klassenarbeit_id, note) VALUES (?, ?, ?)"
         );
         $stmt->execute([$sid, $arbeit, $note]);
+        header('Location: ../frontend/Startseite.php?success=4');
+        exit();
       }
       break;
     }

@@ -34,6 +34,60 @@
         echo json_encode($subjects);
         exit;
       }
+      case 'getStudentsByClass': {
+        // Retrieve all students for a specific class and return as JSON
+        $stmt = $pdo->prepare("SELECT schueler_id, vorname, nachname FROM schueler WHERE klasse_id = ? ORDER BY nachname, vorname");
+        $stmt->execute([$class_id]);
+        $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        header('Content-Type: application/json');
+        echo json_encode($students);
+        exit;
+      }
+      case 'getTestsByClass': {
+        // Retrieve all tests for a specific class and return as JSON
+        $stmt = $pdo->prepare("SELECT klassenarbeit_id, titel, datum FROM klassenarbeit WHERE klasse_id = ? ORDER BY datum DESC");
+        $stmt->execute([$class_id]);
+        $tests = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        header('Content-Type: application/json');
+        echo json_encode($tests);
+        exit;
+      }
+      case 'getTestsByClassAndStudent': {
+        // Retrieve tests for a specific class that a student doesn't have grades in
+        $student_id = (isset($_GET['schueler_id'])) ? htmlspecialchars($_GET['schueler_id']) : "";
+        $stmt = $pdo->prepare(
+          "SELECT klassenarbeit_id, titel, datum 
+           FROM klassenarbeit 
+           WHERE klasse_id = ? 
+           AND klassenarbeit_id NOT IN (
+             SELECT klassenarbeit_id FROM note WHERE schueler_id = ?
+           )
+           ORDER BY datum DESC"
+        );
+        $stmt->execute([$class_id, $student_id]);
+        $tests = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        header('Content-Type: application/json');
+        echo json_encode($tests);
+        exit;
+      }
+      case 'getStudentsByClassAndTest': {
+        // Retrieve students for a specific class that don't have grades in a specific test
+        $test_id = (isset($_GET['klassenarbeit_id'])) ? htmlspecialchars($_GET['klassenarbeit_id']) : "";
+        $stmt = $pdo->prepare(
+          "SELECT schueler_id, vorname, nachname 
+           FROM schueler 
+           WHERE klasse_id = ? 
+           AND schueler_id NOT IN (
+             SELECT schueler_id FROM note WHERE klassenarbeit_id = ?
+           )
+           ORDER BY nachname, vorname"
+        );
+        $stmt->execute([$class_id, $test_id]);
+        $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        header('Content-Type: application/json');
+        echo json_encode($students);
+        exit;
+      }
       case 'gradesPerStudent': {
 
         $stmt = $pdo->prepare(
