@@ -91,6 +91,15 @@ require_once __DIR__ . '/../backend/db.php';
         <button type="submit">Anzeigen</button>
     </form>
 
+        <!-- Debug-Ausgabe -->
+    <?php
+    if (isset($_GET['type'])) {
+        echo "<p>Debug: Type = '" . htmlspecialchars($_GET['type']) . "'</p>";
+    } else {
+        echo "<p>Debug: Kein Type gesetzt</p>";
+    }
+    ?>
+
     <!-- Daten-Anzeige (Temporär da cases noch nicht existieren) -->
     <?php
     if (isset($_GET['type'])) {
