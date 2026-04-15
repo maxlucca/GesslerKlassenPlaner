@@ -25,6 +25,15 @@
         echo json_encode($classes);
         exit;
       }
+      case 'getStudentById': {
+        $student_id = (isset($_GET['schueler_id'])) ? intval($_GET['schueler_id']) : 0;
+        $stmt = $pdo->prepare("SELECT schueler_id, vorname, nachname, geburtsdatum, klasse_id FROM schueler WHERE schueler_id = ?");
+        $stmt->execute([$student_id]);
+        $student = $stmt->fetch(PDO::FETCH_ASSOC);
+        header('Content-Type: application/json');
+        echo json_encode($student ?: new stdClass());
+        exit;
+      }
       case 'getSubjects': {
         // Retrieve all subjects and return as JSON
         $stmt = $pdo->prepare("SELECT fach_id, name FROM fach ORDER BY name");

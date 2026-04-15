@@ -59,7 +59,7 @@ require_once __DIR__ . '/../../new/layout/html_top.php';
         }
 
         // Load students for selected class
-        async function loadStudentsForClass(classId) {
+        async function loadStudentsForClass(classId, selectedStudentId = '') {
             try {
                 const response = await fetch(`../backend/main.php?type=getStudentsByClass&klasse_id=${classId}`);
                 const students = await response.json();
@@ -72,13 +72,17 @@ require_once __DIR__ . '/../../new/layout/html_top.php';
                     option.textContent = student.vorname + ' ' + student.nachname;
                     select.appendChild(option);
                 });
+
+                if (selectedStudentId && select.querySelector(`option[value="${selectedStudentId}"]`)) {
+                    select.value = selectedStudentId;
+                }
             } catch (error) {
                 console.error('Fehler beim Laden der Schüler:', error);
             }
         }
 
         // Load tests for selected class
-        async function loadTestsForClass(classId) {
+        async function loadTestsForClass(classId, selectedTestId = '') {
             try {
                 const response = await fetch(`../backend/main.php?type=getTestsByClass&klasse_id=${classId}`);
                 const tests = await response.json();
@@ -91,13 +95,17 @@ require_once __DIR__ . '/../../new/layout/html_top.php';
                     option.textContent = test.titel + ' (' + test.datum + ')';
                     select.appendChild(option);
                 });
+
+                if (selectedTestId && select.querySelector(`option[value="${selectedTestId}"]`)) {
+                    select.value = selectedTestId;
+                }
             } catch (error) {
                 console.error('Fehler beim Laden der Klassenarbeiten:', error);
             }
         }
 
         // Load tests for a specific student (excluding tests they already have grades in)
-        async function loadTestsForStudent(classId, studentId) {
+        async function loadTestsForStudent(classId, studentId, selectedTestId = '') {
             try {
                 const response = await fetch(`../backend/main.php?type=getTestsByClassAndStudent&klasse_id=${classId}&schueler_id=${studentId}`);
                 const tests = await response.json();
@@ -110,13 +118,17 @@ require_once __DIR__ . '/../../new/layout/html_top.php';
                     option.textContent = test.titel + ' (' + test.datum + ')';
                     select.appendChild(option);
                 });
+
+                if (selectedTestId && select.querySelector(`option[value="${selectedTestId}"]`)) {
+                    select.value = selectedTestId;
+                }
             } catch (error) {
                 console.error('Fehler beim Laden der Klassenarbeiten:', error);
             }
         }
 
         // Load students for a specific test (excluding students who already have grades in this test)
-        async function loadStudentsForTest(classId, testId) {
+        async function loadStudentsForTest(classId, testId, selectedStudentId = '') {
             try {
                 const response = await fetch(`../backend/main.php?type=getStudentsByClassAndTest&klasse_id=${classId}&klassenarbeit_id=${testId}`);
                 const students = await response.json();
@@ -129,6 +141,10 @@ require_once __DIR__ . '/../../new/layout/html_top.php';
                     option.textContent = student.vorname + ' ' + student.nachname;
                     select.appendChild(option);
                 });
+
+                if (selectedStudentId && select.querySelector(`option[value="${selectedStudentId}"]`)) {
+                    select.value = selectedStudentId;
+                }
             } catch (error) {
                 console.error('Fehler beim Laden der Schüler:', error);
             }
@@ -140,7 +156,6 @@ require_once __DIR__ . '/../../new/layout/html_top.php';
             if (classId) {
                 loadStudentsForClass(classId);
                 loadTestsForClass(classId);
-                // Clear the other selections
                 document.getElementById('schueler').value = '';
                 document.getElementById('test').value = '';
             }
@@ -150,17 +165,20 @@ require_once __DIR__ . '/../../new/layout/html_top.php';
         function onStudentChange() {
             const classId = document.getElementById('klasse').value;
             const studentId = document.getElementById('schueler').value;
+            const currentTestId = document.getElementById('test').value;
             if (classId && studentId) {
-                loadTestsForStudent(classId, studentId);
+                loadTestsForStudent(classId, studentId, currentTestId);
+            } else if (classId) {
+                loadTestsForClass(classId, currentTestId);
             }
         }
 
-        // Handle test change - reload students for this test
+        // Handle test change - preserve the student list and keep the current student selected
         function onTestChange() {
             const classId = document.getElementById('klasse').value;
-            const testId = document.getElementById('test').value;
-            if (classId && testId) {
-                loadStudentsForTest(classId, testId);
+            const currentStudentId = document.getElementById('schueler').value;
+            if (classId) {
+                loadStudentsForClass(classId, currentStudentId);
             }
         }
         

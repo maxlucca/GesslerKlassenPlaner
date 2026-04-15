@@ -144,9 +144,11 @@ try {
                     <th>Klassenarbeit</th>
                     <th>Datum</th>
                     <th>Note</th>
+                    <th>Aktionen</th>
                 </tr>
             </thead>
             <tbody>
+                <?php $seenStudents = []; ?>
                 <?php foreach ($allData as $row): ?>
                     <tr>
                         <td><?php echo htmlspecialchars($row['klasse_name']); ?></td>
@@ -158,6 +160,12 @@ try {
                         <td><?php echo htmlspecialchars($row['exam_title'] ?? '-'); ?></td>
                         <td><?php echo htmlspecialchars($row['exam_date'] ?? '-'); ?></td>
                         <td><?php echo htmlspecialchars($row['note'] ?? '-'); ?></td>
+                        <td>
+                            <?php if (!isset($seenStudents[$row['schueler_id']])): ?>
+                                <a href="./schueler_erstellen.php?schueler_id=<?php echo htmlspecialchars($row['schueler_id']); ?>">Bearbeiten</a>
+                                <?php $seenStudents[$row['schueler_id']] = true; ?>
+                            <?php endif; ?>
+                        </td>
                     </tr>
                 <?php endforeach; ?>
             </tbody>

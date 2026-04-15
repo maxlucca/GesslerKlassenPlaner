@@ -88,6 +88,8 @@ function postStatements() {
            WHERE schueler_id = ?"
         );
         $stmt->execute([$name, $lastname, $bday, $class_id, $sid]);
+        header('Location: ../frontend/Startseite.php?success=5');
+        exit();
       }
       break;
     }

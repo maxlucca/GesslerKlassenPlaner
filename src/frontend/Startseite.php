@@ -49,6 +49,7 @@ require_once __DIR__ . '/../../new/layout/html_top.php';
         else if (success === '2') message = 'Klasse angelegt';
         else if (success === '3') message = 'Klassenarbeit angelegt';
         else if (success === '4') message = 'Note erfolgreich eingetragen';
+        else if (success === '5') message = 'Schülerdaten gespeichert';
         if (message) {
             showToast(message);
             // Remove the success parameter from URL to prevent re-showing on refresh
