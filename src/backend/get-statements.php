@@ -35,7 +35,20 @@
         exit;
       }
       case 'gradesPerStudent': {
-  
+
+        $stmt = $pdo->prepare(
+          "SELECT f.name AS fach, n.note
+          FROM note n
+          JOIN schueler s ON n.schueler_id = s.schueler_id
+          JOIN klassenarbeit k ON n.klassenarbeit_id = k.klassenarbeit_id
+          JOIN fach f ON k.fach_id = f.fach_id
+          WHERE s.vorname = ? AND s.lastname = ?
+          ORDER BY k.datum;");
+
+        $stmt->execute($name, $lastname);
+
+        $res = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
         echo "<p>$vorname $nachname</p>"; 
         echo "<table>";
           echo "<tr>";
@@ -57,12 +70,31 @@
 
       case 'gradesPerSubject': {
       
-        echo "<p>Klassenübersicht</p>"; 
+        $stmt = $pdo->prepare(
+          "SELECT 
+              k.bezeichnung AS klasse,
+              f.name AS fach,
+              n.note
+          FROM note n
+          JOIN schueler s ON n.schueler_id = s.schueler_id
+          JOIN klassenarbeit ka ON n.klassenarbeit_id = ka.klassenarbeit_id
+          JOIN fach f ON ka.fach_id = f.fach_id
+          JOIN klasse k ON ka.klasse_id = k.klasse_id
+          WHERE f.name = ?
+            AND (k.klasse_id = ? OR ? IS NULL)
+          ORDER BY k.bezeichnung, s.nachname, ka.datum;
+");
+
+        $stmt->execute($subject);
+
+        $res = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        echo "<p>Noten $subject</p>"; 
         echo "<table>";
           echo "<tr>";
             echo "<td> Klasse </td>";
             echo "<td> Fach </td>";
-            echo "<td> Note </td>";
+            echo "<td> Noten </td>";
           echo "</tr>";
 
         foreach ($res as $r) {
@@ -99,7 +131,6 @@
               
         echo "</table>";
       break;
-
       }
     }
   }
