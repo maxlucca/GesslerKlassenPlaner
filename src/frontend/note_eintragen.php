@@ -28,7 +28,7 @@ require_once __DIR__ . '/../../new/layout/html_top.php';
                 </select>
             </div>
 
-            <div>
+            <div class="input-small">
                 <label for="note">Note:</label>
                 <input type="number" id="note" name="note" min="1" max="6" step="0.1" placeholder="z.B. 2.5" required>
             </div>

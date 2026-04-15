@@ -19,7 +19,7 @@ INSERT INTO klasse (bezeichnung, schuljahr) VALUES
 -- Schüler
 -- ========================
 INSERT INTO schueler (vorname, nachname, geburtsdatum, klasse_id) VALUES
-('Anna', 'Müller', '2010-05-12', 1),
+('Anna', 'Mueller', '2010-05-12', 1),
 ('Lukas', 'Schmidt', '2010-08-20', 1),
 ('Sophia', 'Meier', '2009-11-02', 2),
 ('Max', 'Fischer', '2010-03-15', 2),

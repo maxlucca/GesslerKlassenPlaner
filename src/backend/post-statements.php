@@ -72,6 +72,8 @@ function postStatements() {
       if ($sid) {
         $stmt = $pdo->prepare("DELETE FROM schueler WHERE schueler_id = ?");
         $stmt->execute([$sid]);
+        header('Location: ../frontend/uebersicht_schueler.php?success=6');
+        exit();
       } else {
         echo "<p> Schüler existiert nicht </p>";
       }

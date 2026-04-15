@@ -17,7 +17,7 @@ require_once __DIR__ . '/../../new/layout/html_top.php';
                 <input type="date" id="datum" name="datum" required>
             </div>
 
-            <div>
+            <div class="input-small">
                 <label for="gewichtung">Gewichtung:</label>
                 <input type="number" id="gewichtung" name="gewichtung" min="0" max="100" placeholder="Gewichtung in %" required>
             </div>

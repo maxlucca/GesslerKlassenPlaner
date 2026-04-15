@@ -17,7 +17,6 @@
 
     switch($type) {
       case 'getClasses': {
-        // Retrieve all classes and return as JSON
         $stmt = $pdo->prepare("SELECT klasse_id, bezeichnung, schuljahr FROM klasse ORDER BY bezeichnung");
         $stmt->execute();
         $classes = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -35,7 +34,6 @@
         exit;
       }
       case 'getSubjects': {
-        // Retrieve all subjects and return as JSON
         $stmt = $pdo->prepare("SELECT fach_id, name FROM fach ORDER BY name");
         $stmt->execute();
         $subjects = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -44,7 +42,6 @@
         exit;
       }
       case 'getStudentsByClass': {
-        // Retrieve all students for a specific class and return as JSON
         $stmt = $pdo->prepare("SELECT schueler_id, vorname, nachname FROM schueler WHERE klasse_id = ? ORDER BY nachname, vorname");
         $stmt->execute([$class_id]);
         $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -52,8 +49,21 @@
         echo json_encode($students);
         exit;
       }
+      case 'getSubjectsByClass': {
+        $stmt = $pdo->prepare(
+          "SELECT DISTINCT f.fach_id, f.name 
+           FROM fach f 
+           JOIN klassenarbeit ka ON f.fach_id = ka.fach_id 
+           WHERE ka.klasse_id = ? 
+           ORDER BY f.name"
+        );
+        $stmt->execute([$class_id]);
+        $subjects = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        header('Content-Type: application/json');
+        echo json_encode($subjects);
+        exit;
+      }
       case 'getTestsByClass': {
-        // Retrieve all tests for a specific class and return as JSON
         $stmt = $pdo->prepare("SELECT klassenarbeit_id, titel, datum FROM klassenarbeit WHERE klasse_id = ? ORDER BY datum DESC");
         $stmt->execute([$class_id]);
         $tests = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -62,7 +72,6 @@
         exit;
       }
       case 'getTestsByClassAndStudent': {
-        // Retrieve tests for a specific class that a student doesn't have grades in
         $student_id = (isset($_GET['schueler_id'])) ? htmlspecialchars($_GET['schueler_id']) : "";
         $stmt = $pdo->prepare(
           "SELECT klassenarbeit_id, titel, datum 
@@ -80,7 +89,6 @@
         exit;
       }
       case 'getStudentsByClassAndTest': {
-        // Retrieve students for a specific class that don't have grades in a specific test
         $test_id = (isset($_GET['klassenarbeit_id'])) ? htmlspecialchars($_GET['klassenarbeit_id']) : "";
         $stmt = $pdo->prepare(
           "SELECT schueler_id, vorname, nachname 
@@ -100,80 +108,95 @@
       case 'gradesPerStudent': {
 
         $stmt = $pdo->prepare(
-          "SELECT f.name AS fach, n.note
+          "SELECT f.name AS fach, ROUND(AVG(n.note), 2) AS durchschnitt
           FROM note n
           JOIN schueler s ON n.schueler_id = s.schueler_id
           JOIN klassenarbeit k ON n.klassenarbeit_id = k.klassenarbeit_id
           JOIN fach f ON k.fach_id = f.fach_id
           WHERE s.vorname = ? AND s.nachname = ?
-          ORDER BY k.datum;");
+          GROUP BY f.name
+          ORDER BY f.name;");
 
         $stmt->execute([$name, $lastname]);
 
         $res = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        echo "<p>$name $lastname</p>"; 
-        echo "<table>";
-          echo "<tr>";
-            echo "<td> Fach </td>";
-            echo "<td> Note </td>";
-          echo "</tr>";
-
+        echo "<h3 class=\"table-title\">$name $lastname</h3>";
+        echo "<table class=\"data-table\">";
+          echo "<thead>";
+            echo "<tr>";
+              echo "<th>Fach</th>";
+              echo "<th>Durchschnitt</th>";
+            echo "</tr>";
+          echo "</thead>";
+          echo "<tbody>";
         foreach ($res as $r) {
           echo "<tr>";
             echo "<td>" . htmlspecialchars($r['fach']) . "</td>";
-            echo "<td>" . htmlspecialchars($r['note']) . "</td>";
+            echo "<td>" . htmlspecialchars($r['durchschnitt']) . "</td>";
           echo "</tr>";
-          
         }
-              
+          echo "</tbody>";
         echo "</table>";
       break;
       }
 
       case 'gradesPerSubject': {
       
+        $where = "WHERE f.name = ?";
+        $params = [$subject];
+        
+        if ($class_id) {
+          $where .= " AND k.klasse_id = ?";
+          $params[] = $class_id;
+        }
+        
         $stmt = $pdo->prepare(
-          "SELECT  k.bezeichnung AS klasse, s.vorname AS schueler, s.nachname AS nachname, n.note AS note
+          "SELECT  k.bezeichnung AS klasse, s.vorname AS schueler, s.nachname AS nachname, ka.titel AS klassenarbeit, n.note AS note
           FROM note n
           JOIN schueler s ON n.schueler_id = s.schueler_id
           JOIN klassenarbeit ka ON n.klassenarbeit_id = ka.klassenarbeit_id
           JOIN fach f ON ka.fach_id = f.fach_id
           JOIN klasse k ON ka.klasse_id = k.klasse_id
-          WHERE f.name = ?
-          ORDER BY k.bezeichnung, ka.datum;
+          $where
+          ORDER BY s.nachname, s.vorname, ka.datum;
 ");
 
-        $stmt->execute([$subject]);
+        $stmt->execute($params);
 
         $res = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        echo "<p>Noten $subject</p>"; 
-        echo "<table>";
-          echo "<tr>";
-            echo "<td> Klasse </td>";
-            echo "<td> Schueler </td>";
-            echo "<td> Nachname </td>";
-            echo "<td> Noten </td>";
-          echo "</tr>";
-
+        echo "<h3 class=\"table-title\">Noten $subject</h3>";
+        echo "<table class=\"data-table\">";
+          echo "<thead>";
+            echo "<tr>";
+              echo "<th>Klasse</th>";
+              echo "<th>Vorname</th>";
+              echo "<th>Nachname</th>";
+              echo "<th>Klassenarbeit</th>";
+              echo "<th>Noten</th>";
+            echo "</tr>";
+          echo "</thead>";
+          echo "<tbody>";
         foreach ($res as $r) {
           echo "<tr>";
             echo "<td>" . htmlspecialchars($r['klasse']) . "</td>";
             echo "<td>" . htmlspecialchars($r['schueler']) . "</td>";
             echo "<td>" . htmlspecialchars($r['nachname']) . "</td>";
+            echo "<td>" . htmlspecialchars($r['klassenarbeit']) . "</td>";
             echo "<td>" . htmlspecialchars($r['note']) . "</td>";
           echo "</tr>";
-          
         }
-              
+          echo "</tbody>";
         echo "</table>";
       break;
       
       }
       case 'gradesPerClass': {
-        $getClass = $pdo->prepare("SELECT bezeichnung FROM klasse WHERE klasse_id = $class_id");
-        $className = $getClass->execute();
+        $getClass = $pdo->prepare("SELECT bezeichnung FROM klasse WHERE klasse_id = ?");
+        $getClass->execute([$class_id]);
+        $classData = $getClass->fetch(PDO::FETCH_ASSOC);
+        $className = $classData ? htmlspecialchars($classData['bezeichnung']) : 'Unbekannt';
 
         $stmt = $pdo->prepare(
           "SELECT f.name AS fach, ROUND(AVG(n.note), 2) AS durchschnitt
@@ -190,20 +213,22 @@
 
         $res = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        echo "<p>Notenübersicht $className</p>"; 
-        echo "<table>";
-          echo "<tr>";
-            echo "<td> Fach </td>";
-            echo "<td> Durchschnitt </td>";
-          echo "</tr>";
-
+        echo "<h3 class=\"table-title\">Noten in Klasse $className</h3>";
+        echo "<table class=\"data-table\">";
+          echo "<thead>";
+            echo "<tr>";
+              echo "<th>Fach</th>";
+              echo "<th>Durchschnitt</th>";
+            echo "</tr>";
+          echo "</thead>";
+          echo "<tbody>";
         foreach ($res as $r) {
           echo "<tr>";
             echo "<td>" . htmlspecialchars($r['fach']) . "</td>";
             echo "<td>" . htmlspecialchars($r['durchschnitt']) . "</td>";
           echo "</tr>";   
         }
-              
+          echo "</tbody>";
         echo "</table>";
       break;
       }

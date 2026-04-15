@@ -1,77 +1,47 @@
 <?php
 require_once __DIR__ . '/../../new/layout/html_top.php';
 require_once __DIR__ . '/../backend/db.php';
-
-// Fetch all data joined together
-$query = "
-    SELECT 
-        s.schueler_id,
-        s.vorname,
-        s.nachname,
-        s.geburtsdatum,
-        k.klasse_id,
-        k.bezeichnung as klasse_name,
-        k.schuljahr,
-        f.fach_id,
-        f.name as fach_name,
-        ka.klassenarbeit_id,
-        ka.titel as exam_title,
-        ka.datum as exam_date,
-        ka.gewichtung,
-        n.note_id,
-        n.note
-    FROM schueler s
-    JOIN klasse k ON s.klasse_id = k.klasse_id
-    LEFT JOIN note n ON s.schueler_id = n.schueler_id
-    LEFT JOIN klassenarbeit ka ON n.klassenarbeit_id = ka.klassenarbeit_id
-    LEFT JOIN fach f ON ka.fach_id = f.fach_id
-    ORDER BY k.bezeichnung, s.nachname, s.vorname, f.name, ka.datum
-";
-
-try {
-    $stmt = $pdo->prepare($query);
-    $stmt->execute();
-    $allData = $stmt->fetchAll(PDO::FETCH_ASSOC);
-} catch (PDOException $e) {
-    echo "<p>Fehler beim Laden der Daten: " . htmlspecialchars($e->getMessage()) . "</p>";
-    $allData = [];
-}
 ?>
 
 <div class="container">
-    <h1>Datenbank-Übersicht</h1>
+    <h1>Noten Übersicht</h1>
 
     <!-- Filter-Formular -->
-    <div style="background-color: #f0f0f0; padding: 15px; margin-bottom: 20px; border-radius: 5px;">
+    <div class="card-panel">
         <h3>Noten nach Schüler</h3>
-        <label for="studentSelect">Schüler wählen:</label>
-        <select id="studentSelect" onchange="getGradesPerStudent()">
-            <option value="">-- Schüler auswählen --</option>
+        <label for="classSelectStudent">Klasse wählen:</label>
+        <select id="classSelectStudent" onchange="loadStudentsForGrades()">
+            <option value="">-- Klasse auswählen --</option>
             <?php
-            // Get unique students
-            $studentQuery = "SELECT DISTINCT s.vorname, s.nachname 
-                           FROM schueler s 
-                           ORDER BY s.nachname, s.vorname";
+            // Get unique classes
+            $classQuery = "SELECT DISTINCT k.klasse_id, k.bezeichnung 
+                          FROM klasse k 
+                          ORDER BY k.bezeichnung";
             try {
-                $stmt = $pdo->prepare($studentQuery);
+                $stmt = $pdo->prepare($classQuery);
                 $stmt->execute();
-                $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
-                foreach ($students as $student) {
-                    echo '<option value="' . htmlspecialchars($student['vorname']) . '|' . htmlspecialchars($student['nachname']) . '">';
-                    echo htmlspecialchars($student['vorname'] . ' ' . $student['nachname']);
+                $classes = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                foreach ($classes as $class) {
+                    echo '<option value="' . htmlspecialchars($class['klasse_id']) . '">';
+                    echo htmlspecialchars($class['bezeichnung']);
                     echo '</option>';
                 }
             } catch (PDOException $e) {
-                echo '<option>Fehler beim Laden der Schüler</option>';
+                echo '<option>Fehler beim Laden der Klassen</option>';
             }
             ?>
+        </select>
+
+        <label for="studentSelect" style="margin-top: 1rem;">Schüler wählen:</label>
+        <select id="studentSelect" onchange="getGradesPerStudent()" disabled>
+            <option value="">-- Schüler auswählen --</option>
         </select>
     </div>
 
     <!-- Results Container for Student -->
     <div id="gradesResult" style="display:none; margin-bottom: 20px;"></div>
 
-    <div style="background-color: #f0f0f0; padding: 15px; margin-bottom: 20px; border-radius: 5px;">
+    <div class="card-panel">
         <h3>Noten nach Klasse</h3>
         <label for="classSelect">Klasse wählen:</label>
         <select id="classSelect" onchange="getGradesPerClass()">
@@ -100,86 +70,80 @@ try {
     <!-- Results Container for Class -->
     <div id="classResult" style="display:none; margin-bottom: 20px;"></div>
 
-    <div style="background-color: #f0f0f0; padding: 15px; margin-bottom: 20px; border-radius: 5px;">
+    <div class="card-panel">
         <h3>Noten nach Fach</h3>
-        <label for="subjectSelect">Fach wählen:</label>
-        <select id="subjectSelect" onchange="getGradesPerSubject()">
-            <option value="">-- Fach auswählen --</option>
+        <label for="classSelectSubject">Klasse wählen:</label>
+        <select id="classSelectSubject" onchange="loadSubjectsForGrades()">
+            <option value="">-- Klasse auswählen --</option>
             <?php
-            // Get unique subjects
-            $subjectQuery = "SELECT DISTINCT f.fach_id, f.name 
-                           FROM fach f 
-                           ORDER BY f.name";
+            // Get unique classes
+            $classQuery = "SELECT DISTINCT k.klasse_id, k.bezeichnung 
+                          FROM klasse k 
+                          ORDER BY k.bezeichnung";
             try {
-                $stmt = $pdo->prepare($subjectQuery);
+                $stmt = $pdo->prepare($classQuery);
                 $stmt->execute();
-                $subjects = $stmt->fetchAll(PDO::FETCH_ASSOC);
-                foreach ($subjects as $subject) {
-                    echo '<option value="' . htmlspecialchars($subject['name']) . '">';
-                    echo htmlspecialchars($subject['name']);
+                $classes = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                foreach ($classes as $class) {
+                    echo '<option value="' . htmlspecialchars($class['klasse_id']) . '">';
+                    echo htmlspecialchars($class['bezeichnung']);
                     echo '</option>';
                 }
             } catch (PDOException $e) {
-                echo '<option>Fehler beim Laden der Fächer</option>';
+                echo '<option>Fehler beim Laden der Klassen</option>';
             }
             ?>
+        </select>
+
+        <label for="subjectSelect" style="margin-top: 1rem;">Fach wählen:</label>
+        <select id="subjectSelect" onchange="getGradesPerSubject()" disabled>
+            <option value="">-- Fach auswählen --</option>
         </select>
     </div>
 
     <!-- Results Container for Subject -->
     <div id="subjectResult" style="display:none; margin-bottom: 20px;"></div>
 
-    <!-- Main Data Table -->
-    <?php
-    if (!empty($allData)): ?>
-        <table border="1" style="width: 100%; border-collapse: collapse; margin-top: 20px;">
-            <thead>
-                <tr style="background-color: #4CAF50; color: white;">
-                    <th>Klasse</th>
-                    <th>Vorname</th>
-                    <th>Nachname</th>
-                    <th>Geburtsdatum</th>
-                    <th>Schuljahr</th>
-                    <th>Fach</th>
-                    <th>Klassenarbeit</th>
-                    <th>Datum</th>
-                    <th>Note</th>
-                    <th>Aktionen</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php $seenStudents = []; ?>
-                <?php foreach ($allData as $row): ?>
-                    <tr>
-                        <td><?php echo htmlspecialchars($row['klasse_name']); ?></td>
-                        <td><?php echo htmlspecialchars($row['vorname']); ?></td>
-                        <td><?php echo htmlspecialchars($row['nachname']); ?></td>
-                        <td><?php echo htmlspecialchars($row['geburtsdatum'] ?? '-'); ?></td>
-                        <td><?php echo htmlspecialchars($row['schuljahr'] ?? '-'); ?></td>
-                        <td><?php echo htmlspecialchars($row['fach_name'] ?? '-'); ?></td>
-                        <td><?php echo htmlspecialchars($row['exam_title'] ?? '-'); ?></td>
-                        <td><?php echo htmlspecialchars($row['exam_date'] ?? '-'); ?></td>
-                        <td><?php echo htmlspecialchars($row['note'] ?? '-'); ?></td>
-                        <td>
-                            <?php if (!isset($seenStudents[$row['schueler_id']])): ?>
-                                <a href="./schueler_erstellen.php?schueler_id=<?php echo htmlspecialchars($row['schueler_id']); ?>">Bearbeiten</a>
-                                <?php $seenStudents[$row['schueler_id']] = true; ?>
-                            <?php endif; ?>
-                        </td>
-                    </tr>
-                <?php endforeach; ?>
-            </tbody>
-        </table>
-        <p style="margin-top: 20px;"><strong>Gesamtanzahl Einträge:</strong> <?php echo count($allData); ?></p>
-    <?php else: ?>
-        <p>Keine Daten gefunden.</p>
-    <?php endif; ?>
-    
     <br>
     <button type="button" onclick="window.location.href='./Startseite.php'">Zurück</button>
 </div>
 
 <script>
+function loadStudentsForGrades() {
+    const classSelect = document.getElementById('classSelectStudent');
+    const studentSelect = document.getElementById('studentSelect');
+    const resultDiv = document.getElementById('gradesResult');
+    
+    if (classSelect.value === '') {
+        studentSelect.innerHTML = '<option value="">-- Schüler auswählen --</option>';
+        studentSelect.disabled = true;
+        resultDiv.style.display = 'none';
+        return;
+    }
+    
+    const classId = classSelect.value;
+    
+    // Fetch students for the selected class
+    fetch(`../backend/main.php?type=getStudentsByClass&klasse_id=${encodeURIComponent(classId)}`)
+        .then(response => response.json())
+        .then(students => {
+            studentSelect.innerHTML = '<option value="">-- Schüler auswählen --</option>';
+            students.forEach(student => {
+                const option = document.createElement('option');
+                option.value = student.vorname + '|' + student.nachname;
+                option.textContent = student.vorname + ' ' + student.nachname;
+                studentSelect.appendChild(option);
+            });
+            studentSelect.disabled = false;
+            resultDiv.style.display = 'none';
+        })
+        .catch(error => {
+            console.error('Fehler:', error);
+            studentSelect.innerHTML = '<option>Fehler beim Laden</option>';
+            studentSelect.disabled = true;
+        });
+}
+
 function getGradesPerStudent() {
     const select = document.getElementById('studentSelect');
     const resultDiv = document.getElementById('gradesResult');
@@ -231,18 +195,24 @@ function getGradesPerClass() {
 }
 
 function getGradesPerSubject() {
-    const select = document.getElementById('subjectSelect');
+    const subjectSelect = document.getElementById('subjectSelect');
+    const classSelect = document.getElementById('classSelectSubject');
     const resultDiv = document.getElementById('subjectResult');
     
-    if (select.value === '') {
+    if (subjectSelect.value === '') {
         resultDiv.style.display = 'none';
         return;
     }
     
-    const subject = select.value;
+    const subject = subjectSelect.value;
+    const classId = classSelect.value;
     
-    // Call the backend API using existing gradesPerSubject case
-    fetch(`../backend/main.php?type=gradesPerSubject&fach=${encodeURIComponent(subject)}`)
+    // Call the backend API using existing gradesPerSubject case with class filter
+    const url = classId 
+        ? `../backend/main.php?type=gradesPerSubject&fach=${encodeURIComponent(subject)}&klasse_id=${encodeURIComponent(classId)}`
+        : `../backend/main.php?type=gradesPerSubject&fach=${encodeURIComponent(subject)}`;
+    
+    fetch(url)
         .then(response => response.text())
         .then(html => {
             resultDiv.innerHTML = html;
@@ -252,6 +222,41 @@ function getGradesPerSubject() {
             console.error('Fehler:', error);
             resultDiv.innerHTML = '<p style="color: red;">Fehler beim Abrufen der Noten.</p>';
             resultDiv.style.display = 'block';
+        });
+}
+
+function loadSubjectsForGrades() {
+    const classSelect = document.getElementById('classSelectSubject');
+    const subjectSelect = document.getElementById('subjectSelect');
+    const resultDiv = document.getElementById('subjectResult');
+    
+    if (classSelect.value === '') {
+        subjectSelect.innerHTML = '<option value="">-- Fach auswählen --</option>';
+        subjectSelect.disabled = true;
+        resultDiv.style.display = 'none';
+        return;
+    }
+    
+    const classId = classSelect.value;
+    
+    // Fetch subjects for the selected class
+    fetch(`../backend/main.php?type=getSubjectsByClass&klasse_id=${encodeURIComponent(classId)}`)
+        .then(response => response.json())
+        .then(subjects => {
+            subjectSelect.innerHTML = '<option value="">-- Fach auswählen --</option>';
+            subjects.forEach(subject => {
+                const option = document.createElement('option');
+                option.value = subject.name;
+                option.textContent = subject.name;
+                subjectSelect.appendChild(option);
+            });
+            subjectSelect.disabled = false;
+            resultDiv.style.display = 'none';
+        })
+        .catch(error => {
+            console.error('Fehler:', error);
+            subjectSelect.innerHTML = '<option>Fehler beim Laden</option>';
+            subjectSelect.disabled = true;
         });
 }
 </script>
