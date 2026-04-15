@@ -42,14 +42,14 @@
           JOIN schueler s ON n.schueler_id = s.schueler_id
           JOIN klassenarbeit k ON n.klassenarbeit_id = k.klassenarbeit_id
           JOIN fach f ON k.fach_id = f.fach_id
-          WHERE s.vorname = ? AND s.lastname = ?
+          WHERE s.vorname = ? AND s.nachname = ?
           ORDER BY k.datum;");
 
         $stmt->execute([$name, $lastname]);
 
         $res = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        echo "<p>$vorname $nachname</p>"; 
+        echo "<p>$name $lastname</p>"; 
         echo "<table>";
           echo "<tr>";
             echo "<td> Fach </td>";
@@ -71,18 +71,17 @@
       case 'gradesPerSubject': {
       
         $stmt = $pdo->prepare(
-          "SELECT  k.bezeichnung AS klasse, f.name AS fach, n.note
+          "SELECT  k.bezeichnung AS klasse, s.vorname AS schueler, s.nachname AS nachname, n.note AS note
           FROM note n
           JOIN schueler s ON n.schueler_id = s.schueler_id
           JOIN klassenarbeit ka ON n.klassenarbeit_id = ka.klassenarbeit_id
           JOIN fach f ON ka.fach_id = f.fach_id
           JOIN klasse k ON ka.klasse_id = k.klasse_id
           WHERE f.name = ?
-            AND (k.klasse_id = ? OR ? IS NULL)
-          ORDER BY k.bezeichnung, s.nachname, ka.datum;
+          ORDER BY k.bezeichnung, ka.datum;
 ");
 
-        $stmt->execute($subject);
+        $stmt->execute([$subject]);
 
         $res = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -90,14 +89,16 @@
         echo "<table>";
           echo "<tr>";
             echo "<td> Klasse </td>";
-            echo "<td> Fach </td>";
+            echo "<td> Schueler </td>";
+            echo "<td> Nachname </td>";
             echo "<td> Noten </td>";
           echo "</tr>";
 
         foreach ($res as $r) {
           echo "<tr>";
-            echo "<td>" . htmlspecialchars($r['klasse_id']) . "</td>";
-            echo "<td>" . htmlspecialchars($r['fach']) . "</td>";
+            echo "<td>" . htmlspecialchars($r['klasse']) . "</td>";
+            echo "<td>" . htmlspecialchars($r['schueler']) . "</td>";
+            echo "<td>" . htmlspecialchars($r['nachname']) . "</td>";
             echo "<td>" . htmlspecialchars($r['note']) . "</td>";
           echo "</tr>";
           
@@ -122,7 +123,7 @@
           GROUP BY k.bezeichnung, f.name
           ORDER BY f.name;");
 
-        $stmt->execute($subject);
+        $stmt->execute([$class_id]);
 
         $res = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -136,7 +137,7 @@
         foreach ($res as $r) {
           echo "<tr>";
             echo "<td>" . htmlspecialchars($r['fach']) . "</td>";
-            echo "<td>" . htmlspecialchars($r['note']) . "</td>";
+            echo "<td>" . htmlspecialchars($r['durchschnitt']) . "</td>";
           echo "</tr>";   
         }
               

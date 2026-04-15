@@ -68,8 +68,66 @@ try {
         </select>
     </div>
 
-    <!-- Results Container -->
+    <!-- Results Container for Student -->
     <div id="gradesResult" style="display:none; margin-bottom: 20px;"></div>
+
+    <div style="background-color: #f0f0f0; padding: 15px; margin-bottom: 20px; border-radius: 5px;">
+        <h3>Noten nach Klasse</h3>
+        <label for="classSelect">Klasse wählen:</label>
+        <select id="classSelect" onchange="getGradesPerClass()">
+            <option value="">-- Klasse auswählen --</option>
+            <?php
+            // Get unique classes
+            $classQuery = "SELECT DISTINCT k.klasse_id, k.bezeichnung 
+                          FROM klasse k 
+                          ORDER BY k.bezeichnung";
+            try {
+                $stmt = $pdo->prepare($classQuery);
+                $stmt->execute();
+                $classes = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                foreach ($classes as $class) {
+                    echo '<option value="' . htmlspecialchars($class['klasse_id']) . '">';
+                    echo htmlspecialchars($class['bezeichnung']);
+                    echo '</option>';
+                }
+            } catch (PDOException $e) {
+                echo '<option>Fehler beim Laden der Klassen</option>';
+            }
+            ?>
+        </select>
+    </div>
+
+    <!-- Results Container for Class -->
+    <div id="classResult" style="display:none; margin-bottom: 20px;"></div>
+
+    <div style="background-color: #f0f0f0; padding: 15px; margin-bottom: 20px; border-radius: 5px;">
+        <h3>Noten nach Fach</h3>
+        <label for="subjectSelect">Fach wählen:</label>
+        <select id="subjectSelect" onchange="getGradesPerSubject()">
+            <option value="">-- Fach auswählen --</option>
+            <?php
+            // Get unique subjects
+            $subjectQuery = "SELECT DISTINCT f.fach_id, f.name 
+                           FROM fach f 
+                           ORDER BY f.name";
+            try {
+                $stmt = $pdo->prepare($subjectQuery);
+                $stmt->execute();
+                $subjects = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                foreach ($subjects as $subject) {
+                    echo '<option value="' . htmlspecialchars($subject['name']) . '">';
+                    echo htmlspecialchars($subject['name']);
+                    echo '</option>';
+                }
+            } catch (PDOException $e) {
+                echo '<option>Fehler beim Laden der Fächer</option>';
+            }
+            ?>
+        </select>
+    </div>
+
+    <!-- Results Container for Subject -->
+    <div id="subjectResult" style="display:none; margin-bottom: 20px;"></div>
 
     <!-- Main Data Table -->
     <?php
@@ -127,6 +185,56 @@ function getGradesPerStudent() {
     
     // Call the backend API using existing gradesPerStudent case
     fetch(`../backend/main.php?type=gradesPerStudent&vorname=${encodeURIComponent(vorname)}&nachname=${encodeURIComponent(nachname)}`)
+        .then(response => response.text())
+        .then(html => {
+            resultDiv.innerHTML = html;
+            resultDiv.style.display = 'block';
+        })
+        .catch(error => {
+            console.error('Fehler:', error);
+            resultDiv.innerHTML = '<p style="color: red;">Fehler beim Abrufen der Noten.</p>';
+            resultDiv.style.display = 'block';
+        });
+}
+
+function getGradesPerClass() {
+    const select = document.getElementById('classSelect');
+    const resultDiv = document.getElementById('classResult');
+    
+    if (select.value === '') {
+        resultDiv.style.display = 'none';
+        return;
+    }
+    
+    const classId = select.value;
+    
+    // Call the backend API using existing gradesPerClass case
+    fetch(`../backend/main.php?type=gradesPerClass&klasse_id=${encodeURIComponent(classId)}`)
+        .then(response => response.text())
+        .then(html => {
+            resultDiv.innerHTML = html;
+            resultDiv.style.display = 'block';
+        })
+        .catch(error => {
+            console.error('Fehler:', error);
+            resultDiv.innerHTML = '<p style="color: red;">Fehler beim Abrufen der Noten.</p>';
+            resultDiv.style.display = 'block';
+        });
+}
+
+function getGradesPerSubject() {
+    const select = document.getElementById('subjectSelect');
+    const resultDiv = document.getElementById('subjectResult');
+    
+    if (select.value === '') {
+        resultDiv.style.display = 'none';
+        return;
+    }
+    
+    const subject = select.value;
+    
+    // Call the backend API using existing gradesPerSubject case
+    fetch(`../backend/main.php?type=gradesPerSubject&fach=${encodeURIComponent(subject)}`)
         .then(response => response.text())
         .then(html => {
             resultDiv.innerHTML = html;
