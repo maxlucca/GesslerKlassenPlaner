@@ -42,10 +42,10 @@
           JOIN schueler s ON n.schueler_id = s.schueler_id
           JOIN klassenarbeit k ON n.klassenarbeit_id = k.klassenarbeit_id
           JOIN fach f ON k.fach_id = f.fach_id
-          WHERE s.vorname = $name AND s.lastname = $lastname
+          WHERE s.vorname = ? AND s.lastname = ?
           ORDER BY k.datum;");
 
-        $stmt->execute();
+        $stmt->execute([$name, $lastname]);
 
         $res = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
