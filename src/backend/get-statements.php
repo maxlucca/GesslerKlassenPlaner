@@ -42,10 +42,10 @@
           JOIN schueler s ON n.schueler_id = s.schueler_id
           JOIN klassenarbeit k ON n.klassenarbeit_id = k.klassenarbeit_id
           JOIN fach f ON k.fach_id = f.fach_id
-          WHERE s.vorname = ? AND s.lastname = ?
+          WHERE s.vorname = $name AND s.lastname = $lastname
           ORDER BY k.datum;");
 
-        $stmt->execute($name, $lastname);
+        $stmt->execute();
 
         $res = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -71,10 +71,7 @@
       case 'gradesPerSubject': {
       
         $stmt = $pdo->prepare(
-          "SELECT 
-              k.bezeichnung AS klasse,
-              f.name AS fach,
-              n.note
+          "SELECT  k.bezeichnung AS klasse, f.name AS fach, n.note
           FROM note n
           JOIN schueler s ON n.schueler_id = s.schueler_id
           JOIN klassenarbeit ka ON n.klassenarbeit_id = ka.klassenarbeit_id
@@ -108,25 +105,39 @@
               
         echo "</table>";
       break;
-
-      
       
       }
       case 'gradesPerClass': {
+        $getClass = $pdo->prepare("SELECT bezeichnung FROM klasse WHERE klasse_id = $class_id");
+        $className = $getClass->execute();
 
-        echo "<p>Notenübersicht</p>"; 
+        $stmt = $pdo->prepare(
+          "SELECT f.name AS fach, ROUND(AVG(n.note), 2) AS durchschnitt
+          FROM note n
+          JOIN schueler s ON n.schueler_id = s.schueler_id
+          JOIN klassenarbeit ka ON n.klassenarbeit_id = ka.klassenarbeit_id
+          JOIN fach f ON ka.fach_id = f.fach_id
+          JOIN klasse k ON ka.klasse_id = k.klasse_id
+          WHERE k.klasse_id = ?
+          GROUP BY k.bezeichnung, f.name
+          ORDER BY f.name;");
+
+        $stmt->execute($subject);
+
+        $res = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        echo "<p>Notenübersicht $className</p>"; 
         echo "<table>";
           echo "<tr>";
             echo "<td> Fach </td>";
-            echo "<td> Note </td>";
+            echo "<td> Durchschnitt </td>";
           echo "</tr>";
 
         foreach ($res as $r) {
           echo "<tr>";
             echo "<td>" . htmlspecialchars($r['fach']) . "</td>";
             echo "<td>" . htmlspecialchars($r['note']) . "</td>";
-          echo "</tr>";
-          
+          echo "</tr>";   
         }
               
         echo "</table>";
