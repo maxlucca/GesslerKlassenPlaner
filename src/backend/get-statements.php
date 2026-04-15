@@ -71,6 +71,45 @@
         echo json_encode($tests);
         exit;
       }
+      case 'gradesByClasswork': {
+        $test_id = (isset($_GET['klassenarbeit_id'])) ? htmlspecialchars($_GET['klassenarbeit_id']) : "";
+
+        $titleStmt = $pdo->prepare("SELECT titel FROM klassenarbeit WHERE klassenarbeit_id = ?");
+        $titleStmt->execute([$test_id]);
+        $testData = $titleStmt->fetch(PDO::FETCH_ASSOC);
+        $testTitle = $testData ? htmlspecialchars($testData['titel']) : 'Unbekannte Klassenarbeit';
+
+        $stmt = $pdo->prepare(
+          "SELECT s.vorname, s.nachname, n.note
+           FROM schueler s
+           LEFT JOIN note n ON s.schueler_id = n.schueler_id AND n.klassenarbeit_id = ?
+           WHERE s.klasse_id = ?
+           ORDER BY s.nachname, s.vorname"
+        );
+        $stmt->execute([$test_id, $class_id]);
+        $grades = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        echo "<h3 class=\"table-title\">Noten für Klassenarbeit: $testTitle</h3>";
+        echo "<table class=\"data-table\">";
+          echo "<thead>";
+            echo "<tr>";
+              echo "<th>Vorname</th>";
+              echo "<th>Nachname</th>";
+              echo "<th>Note</th>";
+            echo "</tr>";
+          echo "</thead>";
+          echo "<tbody>";
+        foreach ($grades as $row) {
+          echo "<tr>";
+            echo "<td>" . htmlspecialchars($row['vorname']) . "</td>";
+            echo "<td>" . htmlspecialchars($row['nachname']) . "</td>";
+            echo "<td>" . ($row['note'] === null ? '-' : htmlspecialchars($row['note'])) . "</td>";
+          echo "</tr>";
+        }
+          echo "</tbody>";
+        echo "</table>";
+        exit;
+      }
       case 'getTestsByClassAndStudent': {
         $student_id = (isset($_GET['schueler_id'])) ? htmlspecialchars($_GET['schueler_id']) : "";
         $stmt = $pdo->prepare(

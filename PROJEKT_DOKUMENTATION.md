@@ -105,6 +105,7 @@ php -S localhost:8000 -t src/frontend
   - `type=getClasses`
   - `type=getStudentsByClass`
   - `type=getSubjectsByClass`
+  - `type=gradesByClasswork`
   - `type=gradesPerStudent`
   - `type=gradesPerClass`
   - `type=gradesPerSubject`
@@ -151,7 +152,9 @@ php -S localhost:8000 -t src/frontend
   - nach Schüler
   - nach Klasse
   - nach Fach
+  - nach Klassenarbeit innerhalb einer Klasse
 - Filter und Auswahlfelder sind dynamisch.
+
 
 ### 7.7 `uebersicht_schueler.php`
 

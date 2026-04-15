@@ -104,6 +104,40 @@ require_once __DIR__ . '/../backend/db.php';
     <!-- Results Container for Subject -->
     <div id="subjectResult" style="display:none; margin-bottom: 20px;"></div>
 
+    <div class="card-panel">
+        <h3>Noten nach Klassenarbeit</h3>
+        <label for="classSelectClasswork">Klasse wählen:</label>
+        <select id="classSelectClasswork" onchange="loadClassworkTests()">
+            <option value="">-- Klasse auswählen --</option>
+            <?php
+            // Get unique classes
+            $classQuery = "SELECT DISTINCT k.klasse_id, k.bezeichnung 
+                          FROM klasse k 
+                          ORDER BY k.bezeichnung";
+            try {
+                $stmt = $pdo->prepare($classQuery);
+                $stmt->execute();
+                $classes = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                foreach ($classes as $class) {
+                    echo '<option value="' . htmlspecialchars($class['klasse_id']) . '">';
+                    echo htmlspecialchars($class['bezeichnung']);
+                    echo '</option>';
+                }
+            } catch (PDOException $e) {
+                echo '<option>Fehler beim Laden der Klassen</option>';
+            }
+            ?>
+        </select>
+
+        <label for="classworkSelect" style="margin-top: 1rem;">Klassenarbeit wählen:</label>
+        <select id="classworkSelect" onchange="getGradesByClasswork()" disabled>
+            <option value="">-- Klassenarbeit auswählen --</option>
+        </select>
+    </div>
+
+    <!-- Results Container for Classwork -->
+    <div id="classworkResult" style="display:none; margin-bottom: 20px;"></div>
+
     <br>
     <button type="button" onclick="window.location.href='./Startseite.php'">Zurück</button>
 </div>
@@ -257,6 +291,66 @@ function loadSubjectsForGrades() {
             console.error('Fehler:', error);
             subjectSelect.innerHTML = '<option>Fehler beim Laden</option>';
             subjectSelect.disabled = true;
+        });
+}
+
+function loadClassworkTests() {
+    const classSelect = document.getElementById('classSelectClasswork');
+    const testSelect = document.getElementById('classworkSelect');
+    const resultDiv = document.getElementById('classworkResult');
+
+    if (classSelect.value === '') {
+        testSelect.innerHTML = '<option value="">-- Klassenarbeit auswählen --</option>';
+        testSelect.disabled = true;
+        resultDiv.style.display = 'none';
+        return;
+    }
+
+    const classId = classSelect.value;
+
+    fetch(`../backend/main.php?type=getTestsByClass&klasse_id=${encodeURIComponent(classId)}`)
+        .then(response => response.json())
+        .then(tests => {
+            testSelect.innerHTML = '<option value="">-- Klassenarbeit auswählen --</option>';
+            tests.forEach(test => {
+                const option = document.createElement('option');
+                option.value = test.klassenarbeit_id;
+                option.textContent = `${test.titel} (${test.datum})`;
+                testSelect.appendChild(option);
+            });
+            testSelect.disabled = false;
+            resultDiv.style.display = 'none';
+        })
+        .catch(error => {
+            console.error('Fehler:', error);
+            testSelect.innerHTML = '<option>Fehler beim Laden</option>';
+            testSelect.disabled = true;
+        });
+}
+
+function getGradesByClasswork() {
+    const classSelect = document.getElementById('classSelectClasswork');
+    const testSelect = document.getElementById('classworkSelect');
+    const resultDiv = document.getElementById('classworkResult');
+
+    if (classSelect.value === '' || testSelect.value === '') {
+        resultDiv.style.display = 'none';
+        return;
+    }
+
+    const classId = classSelect.value;
+    const testId = testSelect.value;
+
+    fetch(`../backend/main.php?type=gradesByClasswork&klasse_id=${encodeURIComponent(classId)}&klassenarbeit_id=${encodeURIComponent(testId)}`)
+        .then(response => response.text())
+        .then(html => {
+            resultDiv.innerHTML = html;
+            resultDiv.style.display = 'block';
+        })
+        .catch(error => {
+            console.error('Fehler:', error);
+            resultDiv.innerHTML = '<p style="color: red;">Fehler beim Abrufen der Noten.</p>';
+            resultDiv.style.display = 'block';
         });
 }
 </script>
