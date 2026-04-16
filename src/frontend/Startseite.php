@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/../../new/layout/html_top.php';
+require_once __DIR__ . '/layout/html_top.php';
 ?>
 
 
@@ -27,7 +27,7 @@ require_once __DIR__ . '/../../new/layout/html_top.php';
                 <span>Klassenarbeit</span>
                 <span class="description">Klassenarbeiten erstellen</span>
             </a>
-
+            <a></a>
             <a href="note_eintragen.php" class="menu-card">
                 <span class="icon">✏️</span>
                 <span>Note eintragen</span>
@@ -90,5 +90,5 @@ require_once __DIR__ . '/../../new/layout/html_top.php';
 </script>
 
 <?php
-require_once __DIR__ . '/../../new/layout/html_bottom.php';
+require_once __DIR__ . '/layout/html_bottom.php';
 ?>

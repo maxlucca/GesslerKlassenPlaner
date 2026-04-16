@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/../../new/layout/html_top.php';
+require_once __DIR__ . '/layout/html_top.php';
 require_once __DIR__ . '/../backend/db.php';
 
 $query = "
@@ -156,5 +156,5 @@ try {
 </script>
 
 <?php
-require_once __DIR__ . '/../../new/layout/html_bottom.php';
+require_once __DIR__ . '/layout/html_bottom.php';
 ?>

@@ -13,7 +13,6 @@
 - `database/` – SQL-Dateien für Schema und Beispiel-Daten.
   - `01_scheme_schulverwaltung.sql`
   - `02_initial_inserts.sql`
-- `new/` – Alte oder alternative Frontend-/Layout-Dateien.
 - `src/` – Hauptanwendung.
   - `backend/` – Backend-Logik und Datenbankzugriffe.
     - `db.php` – Datenbankverbindung.
