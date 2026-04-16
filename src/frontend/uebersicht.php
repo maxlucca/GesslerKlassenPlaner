@@ -13,7 +13,6 @@ require_once __DIR__ . '/../backend/db.php';
         <select id="classSelectStudent" onchange="loadStudentsForGrades()">
             <option value="">-- Klasse auswählen --</option>
             <?php
-            // Get unique classes
             $classQuery = "SELECT DISTINCT k.klasse_id, k.bezeichnung 
                           FROM klasse k 
                           ORDER BY k.bezeichnung";
@@ -47,7 +46,6 @@ require_once __DIR__ . '/../backend/db.php';
         <select id="classSelect" onchange="getGradesPerClass()">
             <option value="">-- Klasse auswählen --</option>
             <?php
-            // Get unique classes
             $classQuery = "SELECT DISTINCT k.klasse_id, k.bezeichnung 
                           FROM klasse k 
                           ORDER BY k.bezeichnung";
@@ -76,7 +74,6 @@ require_once __DIR__ . '/../backend/db.php';
         <select id="classSelectSubject" onchange="loadSubjectsForGrades()">
             <option value="">-- Klasse auswählen --</option>
             <?php
-            // Get unique classes
             $classQuery = "SELECT DISTINCT k.klasse_id, k.bezeichnung 
                           FROM klasse k 
                           ORDER BY k.bezeichnung";
@@ -101,7 +98,7 @@ require_once __DIR__ . '/../backend/db.php';
         </select>
     </div>
 
-    <!-- Results Container for Subject -->
+
     <div id="subjectResult" style="display:none; margin-bottom: 20px;"></div>
 
     <div class="card-panel">
@@ -110,7 +107,6 @@ require_once __DIR__ . '/../backend/db.php';
         <select id="classSelectClasswork" onchange="loadClassworkTests()">
             <option value="">-- Klasse auswählen --</option>
             <?php
-            // Get unique classes
             $classQuery = "SELECT DISTINCT k.klasse_id, k.bezeichnung 
                           FROM klasse k 
                           ORDER BY k.bezeichnung";
@@ -135,7 +131,6 @@ require_once __DIR__ . '/../backend/db.php';
         </select>
     </div>
 
-    <!-- Results Container for Classwork -->
     <div id="classworkResult" style="display:none; margin-bottom: 20px;"></div>
 
     <br>
@@ -157,7 +152,6 @@ function loadStudentsForGrades() {
     
     const classId = classSelect.value;
     
-    // Fetch students for the selected class
     fetch(`../backend/main.php?type=getStudentsByClass&klasse_id=${encodeURIComponent(classId)}`)
         .then(response => response.json())
         .then(students => {
@@ -189,7 +183,6 @@ function getGradesPerStudent() {
     
     const [vorname, nachname] = select.value.split('|');
     
-    // Call the backend API using existing gradesPerStudent case
     fetch(`../backend/main.php?type=gradesPerStudent&vorname=${encodeURIComponent(vorname)}&nachname=${encodeURIComponent(nachname)}`)
         .then(response => response.text())
         .then(html => {
@@ -214,7 +207,6 @@ function getGradesPerClass() {
     
     const classId = select.value;
     
-    // Call the backend API using existing gradesPerClass case
     fetch(`../backend/main.php?type=gradesPerClass&klasse_id=${encodeURIComponent(classId)}`)
         .then(response => response.text())
         .then(html => {
@@ -241,7 +233,6 @@ function getGradesPerSubject() {
     const subject = subjectSelect.value;
     const classId = classSelect.value;
     
-    // Call the backend API using existing gradesPerSubject case with class filter
     const url = classId 
         ? `../backend/main.php?type=gradesPerSubject&fach=${encodeURIComponent(subject)}&klasse_id=${encodeURIComponent(classId)}`
         : `../backend/main.php?type=gradesPerSubject&fach=${encodeURIComponent(subject)}`;

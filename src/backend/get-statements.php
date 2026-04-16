@@ -1,10 +1,4 @@
 <?php
-  // ganze Klasse
-  // einzelnes Fach vs alle Fächer
-
-  // einzelner Schüle
-  // kompletter Durchschnitt
-  // Einzelne Fächer inkl einzelner Noten
   function getStatements() {
     global $pdo;
     

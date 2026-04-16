@@ -1,7 +1,6 @@
 <?php
 
 function postStatements() {
-  // make PDO connection available from db.php
   global $pdo;
 
   $type = isset($_POST['type']) ? htmlspecialchars($_POST['type']) : null;
@@ -17,7 +16,6 @@ function postStatements() {
 
   switch ($type) {
     case 'addStudent': {
-      // insert a new student record
       $fields = [$name, $lastname, $bday, $class_id];
       $check = $pdo->prepare(
         "SELECT * FROM schueler WHERE vorname = ? and nachname = ? and geburtsdatum = ? and klasse_id = ?"
@@ -36,7 +34,6 @@ function postStatements() {
       break;
     }
 
-// von Tim eingefügt um was zu testen (funktioniert) :)
 
     case 'addClass': {
       $bezeichnung = isset($_POST['bezeichnung']) ? htmlspecialchars($_POST['bezeichnung']) : null;
@@ -61,13 +58,11 @@ function postStatements() {
       break;
     }
 
-// von Tim eingefügt um was zu testen (funktioniert) :)
 
 
 
 
     case 'removeStudent': {
-      // expects schueler_id in POST data
       $sid = isset($_POST['schueler_id']) ? intval($_POST['schueler_id']) : 0;
       if ($sid) {
         $stmt = $pdo->prepare("DELETE FROM schueler WHERE schueler_id = ?");
@@ -81,7 +76,6 @@ function postStatements() {
     }
 
     case 'updateStudent': {
-      // update existing student values
       $sid = isset($_POST['schueler_id']) ? intval($_POST['schueler_id']) : 0;
       if ($sid && ($name || $lastname || $bday || $class_id)) {
         $stmt = $pdo->prepare(
@@ -97,7 +91,6 @@ function postStatements() {
     }
 
     case 'addGrade': {
-      // add a new grade/note for a student
       $sid = isset($_POST['schueler_id']) ? intval($_POST['schueler_id']) : 0;
       $arbeit = isset($_POST['klassenarbeit_id']) ? intval($_POST['klassenarbeit_id']) : 0;
       $note = isset($_POST['note']) ? floatval($_POST['note']) : null;
@@ -113,7 +106,6 @@ function postStatements() {
     }
 
     case 'addKlassenarbeit': {
-      // insert a new klassenarbeit record
       if ($titel && $datum && $gewichtung && $fach_id && $class_id) {
         $stmt = $pdo->prepare(
           "INSERT INTO klassenarbeit (titel, datum, gewichtung, fach_id, klasse_id) VALUES (?, ?, ?, ?, ?)"
@@ -131,7 +123,4 @@ function postStatements() {
     }
   }
 
-  // einzelner Schüler
-  // Schüler hinzufügen / Entfernen
-  // Klassenarbeit hinzufügen / Anpassen / Löschen
 }
